@@ -3,7 +3,7 @@ from django.db import models
 
 
 class RepositoryType(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=255)
     description = models.TextField()
 
 
@@ -25,16 +25,17 @@ class Repository(models.Model):
     branch = models.CharField(max_length=255)
     description = models.TextField()
     public = models.BooleanField()
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
-    created_on = models.DateTimeField()
-    updated_by = models.ForeignKey(User, on_delete=models.PROTECT)
-    updated_on = models.DateTimeField()
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='updated_by', null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
     repo_type = models.ForeignKey(RepositoryType, on_delete=models.PROTECT)
-    last_revision = models.ForeignKey(Commit, on_delete=models.PROTECT)
-    last_scan = models.DateTimeField()
+    last_revision = models.ForeignKey(Commit, on_delete=models.PROTECT, null=True, blank=True)
+    last_scan = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = (('address', 'branch'),)
+        verbose_name_plural = 'Repositories'
 
 
 class UserRepository(models.Model):

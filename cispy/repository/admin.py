@@ -1,3 +1,5 @@
 from django.contrib import admin
+from repository.models import Repository, RepositoryType
 
-# Register your models here.
+admin.site.register(Repository)
+admin.site.register(RepositoryType)
