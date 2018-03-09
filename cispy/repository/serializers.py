@@ -3,7 +3,7 @@
 import datetime
 from rest_framework import serializers
 
-from repository.models import Repository
+from repository.models import Repository, Commit
 
 
 class TimestampField(serializers.Field):
@@ -21,5 +21,12 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Repository
-        fields = ('id', 'name', 'address', 'branch', 'description', 'public', 'created_by', 'created_at', 'updated_by',
+        fields = ('id', 'name', 'address', 'branch', 'description', 'private', 'created_by', 'created_at', 'updated_by',
                   'updated_at', 'repo_type', 'last_revision', 'last_scan')
+
+
+class CommitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Commit
+        fields = ('repository', 'revision', 'author', 'author_email', 'commiter', 'commiter_email',
+                  'parent_revision', 'lines_inserted', 'lines_deleted', 'files_changed')
