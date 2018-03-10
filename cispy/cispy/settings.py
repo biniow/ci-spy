@@ -82,6 +82,13 @@ DATABASES = {
     }
 }
 
+# CELERY STUFF
+CELERY_BROKER_URL = 'redis://localhost:'
+CELERY_RESULT_BACKEND = 'redis://localhost'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Warsaw'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
