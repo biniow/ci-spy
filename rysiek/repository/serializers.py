@@ -23,10 +23,3 @@ class RepositorySerializer(serializers.ModelSerializer):
         model = Repository
         fields = ('id', 'name', 'address', 'branch', 'description', 'private', 'created_by', 'created_at', 'updated_by',
                   'updated_at', 'repo_type', 'last_revision', 'last_scan')
-
-
-class CommitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Commit
-        fields = ('repository', 'revision', 'author', 'author_email', 'commiter', 'commiter_email',
-                  'parent_revision', 'lines_inserted', 'lines_deleted', 'files_changed')
