@@ -90,6 +90,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Warsaw'
 
+# Repo storage path is a configuration which tells rysiek, where to store repositories
+# as mirror on the local hard disk
+REPO_STORAGE_PATH = '/tmp/repo_storage'
+
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
