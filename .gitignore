@@ -2,3 +2,6 @@
 .idea/
 *.sqlite3
 migrations/
+celerybeat.pid
+celerybeat-schedule
+*.rdb
