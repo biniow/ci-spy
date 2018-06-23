@@ -5,7 +5,7 @@ from collections import namedtuple
 
 import os
 
-from repository.vcs_interfaces.utils import get_repo_url, ch_dir
+from repository.vcs_interfaces.utils import get_repo_url, ch_dir, shell_cmd
 
 Repository = namedtuple('Repository', ['address_protocol', 'address_user', 'address_host', 'address_port', 'address_repo'])
 
@@ -108,3 +108,14 @@ class TestChDir(unittest.TestCase):
         # Assert
         self.assertEqual(before_path, os.getcwd())
 
+
+class TestShellCmd(unittest.TestCase):
+    def test_returnOutParameter_returnedProperValue(self):
+        # Arrange
+        command = 'echo test'
+
+        # Act
+        _, ret_stdout, _ = shell_cmd(command, return_out=True)
+
+        # Assert
+        self.assertEqual(ret_stdout, 'test')

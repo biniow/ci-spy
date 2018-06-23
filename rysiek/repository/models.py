@@ -33,6 +33,22 @@ class Repository(models.Model):
     last_scan = models.DateTimeField(null=True, blank=True)
     scan_periodically = models.BooleanField(default=True)
 
+    def __str__(self):
+        return '{name}@{host}'.format(name=self.address_repo, host=self.address_host)
+
     class Meta:
         unique_together = ('address_host', 'address_repo')
         verbose_name_plural = 'Repositories'
+
+
+class RepositoryErrorLog(models.Model):
+    repository = models.ForeignKey(Repository, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    command = models.CharField(max_length=1000)
+    return_code = models.IntegerField()
+    out = models.TextField(max_length=10000)
+    err = models.TextField(max_length=10000)
+
+    def __str__(self):
+        return '{date} +++ {repo} +++ code:{return_code}'.format(date=str(self.timestamp), repo=self.repository.name,
+                                                                 return_code=self.return_code)
