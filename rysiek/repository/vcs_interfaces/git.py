@@ -2,19 +2,21 @@
 # -*- coding: utf-8 -*-
 import os
 
-from django.conf import settings
-
-from repository.vcs_interfaces.utils import get_repo_url, shell_cmd, log_errors
+from repository.vcs_interfaces.utils import get_repo_url, logged_execution, get_repo_local_path
 
 
-@log_errors
+@logged_execution
 def init_or_update(repository):
-    repo_local_path = os.path.join(settings.REPO_STORAGE_PATH, repository.address_host, repository.address_repo)
+    """
+    Function generates git command based on current repository status. If bare repository already exists on
+    local disk, update will be executed. In other case, there is a need to clone it
+    :param repository: repository object, defines base for further actions
+    :return: git command which will be executed in @logged_execution wrapper
+    """
+    repo_local_path = get_repo_local_path(repository)
 
     if os.path.exists(repo_local_path):
-        command = 'git -C {repo_local_path} remote update --prune'.format(repo_local_path=repo_local_path)
+        return 'git -C {repo_local_path} remote update --prune'.format(repo_local_path=repo_local_path)
     else:
         url = get_repo_url(repository)
-        command = 'git clone {url} {repo_local_path} --mirror --bare'.format(url=url, repo_local_path=repo_local_path)
-
-    return (command,) + shell_cmd(command, return_out=True)
+        return 'git clone {url} {repo_local_path} --mirror --bare'.format(url=url, repo_local_path=repo_local_path)

@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
+from collections import namedtuple
 from contextlib import contextmanager
 
+from django.conf import settings
 from repository.models import RepositoryErrorLog
+
+VCSCmdOutput = namedtuple('VCSCmdOutput', 'command return_code out err')
 
 
 def get_repo_url(repository):
@@ -21,6 +25,15 @@ def get_repo_url(repository):
         'repo': ''.join(('/', repository.address_repo))
     }
     return '{protocol}://{user}{host}{port}{repo}'.format(**url_data)
+
+
+def get_repo_local_path(repository):
+    """
+    Function returns path to bare repository on local hard disk
+    :param repository: repository instance
+    :return: generated path to repository on local disk
+    """
+    return os.path.join(settings.REPO_STORAGE_PATH, repository.address_host, repository.address_repo)
 
 
 @contextmanager
@@ -59,13 +72,16 @@ def shell_cmd(command, print_out=False, return_out=False, stdout=subprocess.PIPE
     return process.returncode, None, None
 
 
-def log_errors(func):
+def logged_execution(func):
     """
     Decorator which will log every error occured to database table RepositoryErrorLog
     :param func: function which will be wrapper
     """
-    def wrapper(*args, **kwargs):
-        command, return_code, out, err = func(*args, **kwargs)
+
+    def wrapper(repository, *args, **kwargs):
+        command = func(repository, *args, **kwargs)
+        return_code, out, err = shell_cmd(command, return_out=True, print_out=True)
         if return_code != 0:
-            RepositoryErrorLog(repository=args[0], command=command, return_code=return_code, out=out, err=err).save()
+            RepositoryErrorLog(repository=repository, command=command, return_code=return_code, out=out, err=err).save()
+
     return wrapper
