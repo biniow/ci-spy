@@ -1,22 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
 
-from repository.vcs_interfaces.utils import get_repo_url, logged_execution, get_repo_local_path
+from repository.vcs_interfaces.utils import logged_execution, is_repo_mirrored
 
 
 @logged_execution
-def init_or_update(repository):
-    """
-    Function generates git command based on current repository status. If bare repository already exists on
-    local disk, update will be executed. In other case, there is a need to clone it
-    :param repository: repository object, defines base for further actions
-    :return: git command which will be executed in @logged_execution wrapper
-    """
-    repo_local_path = get_repo_local_path(repository)
+def _update(*args, **kwargs):
+    return 'git -C {repo_local_path} remote update --prune'.format(repo_local_path=kwargs['repo_local_path'])
 
-    if os.path.exists(repo_local_path):
-        return 'git -C {repo_local_path} remote update --prune'.format(repo_local_path=repo_local_path)
+
+@logged_execution
+def _clone(*args, **kwargs):
+    return 'git clone {url} {repo_local_path} --mirror --bare'.format(url=kwargs['repo_remote_url'],
+                                                                      repo_local_path=kwargs['repo_local_path'])
+
+
+@logged_execution
+def _branch(*args, **kwargs):
+    return 'git -C {repo_local_path} branch -av'.format(repo_local_path=kwargs['repo_local_path'])
+
+
+def init_or_update(repository):
+    if is_repo_mirrored(repository):
+        _update(repository)
     else:
-        url = get_repo_url(repository)
-        return 'git clone {url} {repo_local_path} --mirror --bare'.format(url=url, repo_local_path=repo_local_path)
+        _clone(repository)
+
+
+def get_branches(repository):
+    out = _branch(repository)
+    result = []
+    for branch in out.split('\n'):
+        name, current_hash, commit_msg = branch.lstrip('* ').split(maxsplit=2)
+        result.append({
+            'name': name,
+            'hash': current_hash,
+            'commit_message_header': commit_msg
+        })
+    return result

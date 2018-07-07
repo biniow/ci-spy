@@ -16,12 +16,12 @@ class Repository(models.Model):
     )
 
     name = models.CharField(max_length=255)
-    address_protocol = models.CharField(max_length=10, choices=PROTOCOLS)
-    address_user = models.CharField(max_length=255, null=True, blank=True)
-    address_host = models.CharField(max_length=255)
-    address_port = models.IntegerField(null=True, blank=True,
-                                       validators=[MinValueValidator(0), MaxValueValidator(65536)])
-    address_repo = models.CharField(max_length=255)
+    protocol = models.CharField(max_length=10, choices=PROTOCOLS)
+    user = models.CharField(max_length=255, null=True, blank=True)
+    host = models.CharField(max_length=255)
+    port = models.IntegerField(null=True, blank=True,
+                               validators=[MinValueValidator(0), MaxValueValidator(65536)])
+    repo_remote_path = models.CharField(max_length=255)
     description = models.TextField()
     private = models.BooleanField()
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_by')
@@ -34,10 +34,10 @@ class Repository(models.Model):
     scan_periodically = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{name}@{host}'.format(name=self.address_repo, host=self.address_host)
+        return '{name}@{host}'.format(name=self.repo_remote_path, host=self.host)
 
     class Meta:
-        unique_together = ('address_host', 'address_repo')
+        unique_together = ('host', 'repo_remote_path')
         verbose_name_plural = 'Repositories'
 
 

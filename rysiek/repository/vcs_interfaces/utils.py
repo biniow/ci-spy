@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-from collections import namedtuple
 from contextlib import contextmanager
 
+import datetime
 from django.conf import settings
 from repository.models import RepositoryErrorLog
 
-VCSCmdOutput = namedtuple('VCSCmdOutput', 'command return_code out err')
+
+class ShellExecutionError(Exception):
+    pass
 
 
 def get_repo_url(repository):
@@ -18,11 +20,11 @@ def get_repo_url(repository):
     :return: str - concatenated URL
     """
     url_data = {
-        'protocol': repository.address_protocol.lower(),
-        'user': ''.join((repository.address_user, '@')) if repository.address_user else '',
-        'host': repository.address_host.lower(),
-        'port': ''.join((':', str(repository.address_port))) if repository.address_port else '',
-        'repo': ''.join(('/', repository.address_repo))
+        'protocol': repository.protocol.lower(),
+        'user': ''.join((repository.user, '@')) if repository.user else '',
+        'host': repository.host.lower(),
+        'port': ''.join((':', str(repository.port))) if repository.port else '',
+        'repo': ''.join(('/', repository.repo_remote_path))
     }
     return '{protocol}://{user}{host}{port}{repo}'.format(**url_data)
 
@@ -33,7 +35,11 @@ def get_repo_local_path(repository):
     :param repository: repository instance
     :return: generated path to repository on local disk
     """
-    return os.path.join(settings.REPO_STORAGE_PATH, repository.address_host, repository.address_repo)
+    return os.path.join(settings.REPO_STORAGE_PATH, repository.host, repository.repo_remote_path)
+
+
+def is_repo_mirrored(repository):
+    return os.path.exists(get_repo_local_path(repository))
 
 
 @contextmanager
@@ -78,10 +84,21 @@ def logged_execution(func):
     :param func: function which will be wrapper
     """
 
-    def wrapper(repository, *args, **kwargs):
-        command = func(repository, *args, **kwargs)
-        return_code, out, err = shell_cmd(command, return_out=True, print_out=True)
-        if return_code != 0:
-            RepositoryErrorLog(repository=repository, command=command, return_code=return_code, out=out, err=err).save()
+    def wrapper(*args, **kwargs):
+        repository = args[0]
+        kwargs['repo_local_path'] = get_repo_local_path(repository)
+        kwargs['repo_remote_url'] = get_repo_url(repository)
+
+        cmd = func(*args, **kwargs)
+        ret_code, out, err = shell_cmd(cmd, return_out=True)
+
+        if ret_code != 0:
+            error_log = RepositoryErrorLog(repository=repository, command=cmd, return_code=ret_code, out=out, err=err)
+            error_log.save()
+            raise ShellExecutionError(str(error_log))
+        else:
+            repository.last_scan = datetime.datetime.now()
+            repository.save()
+            return out
 
     return wrapper
