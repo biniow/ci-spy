@@ -36,3 +36,21 @@ class RepositoryBranches(OwnPublicRepositoriesMixin, generics.RetrieveAPIView):
             'branches': branches
         }
         return Response(response)
+
+
+class RepositoryParticipants(OwnPublicRepositoriesMixin, generics.RetrieveAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        repo_id = int(kwargs['pk'])
+        try:
+            n = int(request.GET.get('top'))
+        except TypeError:
+            n = None
+
+        participants = git.get_participants(get_object_or_404(self.get_queryset(), pk=repo_id), n)
+
+        response = {
+            'repository_id': repo_id,
+            'number_of_participants': len(participants),
+            'participants': participants
+        }
+        return Response(response)
