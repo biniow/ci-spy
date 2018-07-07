@@ -97,8 +97,6 @@ def logged_execution(func):
             error_log.save()
             raise ShellExecutionError(str(error_log))
         else:
-            repository.last_scan = datetime.datetime.now()
-            repository.save()
             return out
 
     return wrapper

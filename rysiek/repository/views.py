@@ -1,6 +1,7 @@
 # Create your views here.
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 
 from repository.models import Repository
@@ -57,9 +58,32 @@ class RepositoryParticipants(OwnPublicRepositoriesMixin, generics.RetrieveAPIVie
 
 
 class RepositoryLog(OwnPublicRepositoriesMixin, generics.RetrieveAPIView):
+    @staticmethod
+    def parse_params(params):
+        start_rev = params.get('start_rev')
+        stop_rev = params.get('stop_rev')
+
+        if not start_rev and stop_rev:
+            raise ValueError('start_rev is needed')
+
+        return {
+            'start_rev': start_rev,
+            'stop_rev': stop_rev,
+            'branch': params.get('branch'),
+            'author': params.get('author'),
+            'since': params.get('since'),
+            'until': params.get('until')
+        }
+
     def retrieve(self, request, *args, **kwargs):
         repo_id = int(kwargs['pk'])
-        log = git.get_log(get_object_or_404(self.get_queryset(), pk=repo_id))
+
+        try:
+            params = self.parse_params(request.GET)
+        except ValueError:
+            return Response('You should provide \'start_rev\' parameter', status=status.HTTP_400_BAD_REQUEST)
+
+        log = git.get_log(get_object_or_404(self.get_queryset(), pk=repo_id), **params)
 
         response = {
             'repository_id': repo_id,
