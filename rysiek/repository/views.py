@@ -54,3 +54,16 @@ class RepositoryParticipants(OwnPublicRepositoriesMixin, generics.RetrieveAPIVie
             'participants': participants
         }
         return Response(response)
+
+
+class RepositoryLog(OwnPublicRepositoriesMixin, generics.RetrieveAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        repo_id = int(kwargs['pk'])
+        log = git.get_log(get_object_or_404(self.get_queryset(), pk=repo_id))
+
+        response = {
+            'repository_id': repo_id,
+            'commits_returned': len(log),
+            'log': log
+        }
+        return Response(response)
