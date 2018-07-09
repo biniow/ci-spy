@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import datetime
+from django.utils import timezone
 from collections import Counter
 
 import repository.vcs_interfaces.git as git
@@ -13,7 +13,7 @@ def init_or_update(repository):
     else:
         git.clone(repository)
 
-    repository.last_scan = datetime.datetime.now()
+    repository.last_scan = timezone.now()
     repository.save()
 
 
