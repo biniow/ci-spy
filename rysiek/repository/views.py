@@ -1,12 +1,15 @@
 # Create your views here.
-from django.http import HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from rest_framework import generics, status
 from rest_framework.response import Response
 
 from repository.models import Repository
 from repository.serializers import RepositorySerializer
 from repository.vcs_interfaces import git_features
+
+
+def main_view(request):
+    return render(request, 'repository/index.html', {})
 
 
 class OwnPublicRepositoriesMixin(object):

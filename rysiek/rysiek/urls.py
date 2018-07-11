@@ -17,7 +17,10 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, include
 
+from repository.views import main_view
+
 urlpatterns = [
+    url(r'^index/$', main_view),
     path('admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^api/vcs/', include('repository.urls'))
